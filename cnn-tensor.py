@@ -16,6 +16,7 @@ from keras.layers import Convolution2D
 from keras.layers import MaxPool2D
 from keras.layers import Flatten
 from keras.layers import Dense
+from keras.callbacks import ReduceLROnPlateau
 
 #import kaggle data
 train = pd.read_csv("data/train.csv")
@@ -52,3 +53,37 @@ model.add(Convolution2D(filters = 32, kernel_size = (3, 3),
                         input_shape = (28, 28, 1), activation = 'relu'))
 model.add(Convolution2D(filters = 32, kernel_size = (3, 3), 
                         input_shape = (28, 28, 1), activation = 'relu'))
+model.add(MaxPool2D(pool_size = (2, 2)))
+
+#more complex layers                                  ###COMMENTED OUT TO SAVE TIME
+#model.add(Convolution2D(filters = 64, kernel_size = (3,3), 
+#                 activation ='relu'))
+#model.add(Convolution2D(filters = 64, kernel_size = (3,3), 
+#                 activation ='relu'))
+#model.add(MaxPool2D(pool_size=(2,2)))
+
+#flatten
+model.add(Flatten())
+
+#Full Connection 
+model.add(Dense(256, activation = "relu"))
+model.add(Dense(10, activation = "softmax"))
+
+# Compile //try RMSprop?
+model.compile(optimizer = 'adam' , loss = "categorical_crossentropy", metrics=["accuracy"])
+
+
+# Set a learning rate annealer -- drops LR by half is not improving after 3 epochs
+learning_rate_reduction = ReduceLROnPlateau(monitor='val_acc', 
+                                            patience=3, 
+                                            verbose=1, 
+                                            factor=0.5, 
+                                            min_lr=0.00001)
+
+epochs = 1   #test number  set higher for final
+batch_size = 100
+
+#FIT TIME
+model.fit(X_train, Y_train, batch_size = batch_size, epochs = epochs, 
+          validation_data = (X_test, Y_test), verbose = 1)
+
