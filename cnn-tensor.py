@@ -6,6 +6,7 @@ Simple test driving keras and CNN's for school project
 (Much help from yassineghouzam intro to CNN Kernal in Kaggle)
 """
 import pandas as pd
+import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
@@ -49,15 +50,12 @@ X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train,
 model = Sequential() 
 
 #convolution - add layers
-model.add(Convolution2D(filters = 32, kernel_size = (3, 3), 
+model.add(Convolution2D(filters = 32, kernel_size = (5, 5), 
                         input_shape = (28, 28, 1), activation = 'relu'))
-model.add(Convolution2D(filters = 32, kernel_size = (3, 3), 
-                        input_shape = (28, 28, 1), activation = 'relu'))
+
 model.add(MaxPool2D(pool_size = (2, 2)))
 
 #more complex layers                                  ###COMMENTED OUT TO SAVE TIME
-#model.add(Convolution2D(filters = 64, kernel_size = (3,3), 
-#                 activation ='relu'))
 #model.add(Convolution2D(filters = 64, kernel_size = (3,3), 
 #                 activation ='relu'))
 #model.add(MaxPool2D(pool_size=(2,2)))
@@ -80,10 +78,32 @@ learning_rate_reduction = ReduceLROnPlateau(monitor='val_acc',
                                             factor=0.5, 
                                             min_lr=0.00001)
 
-epochs = 1   #test number  set higher for final
+epochs = 12   #test number  set higher for final
 batch_size = 100
 
 #FIT TIME
 model.fit(X_train, Y_train, batch_size = batch_size, epochs = epochs, 
           validation_data = (X_test, Y_test), verbose = 1)
 
+
+#confusion matrix
+Y_pred = model.predict(X_test)
+# Convert predictions classes to one hot vectors 
+Y_pred_classes = np.argmax(Y_pred,axis = 1) 
+# Convert validation observations to one hot vectors
+Y_true = np.argmax(Y_test, axis = 1) 
+# compute the confusion matrix
+confusion_matrix = confusion_matrix(Y_true, Y_pred_classes) 
+print(confusion_matrix)
+
+
+###Run on test and write out for Kaggle submission
+results = model.predict(test)
+
+# select the indix with the maximum probability
+results = np.argmax(results,axis = 1)
+results = pd.Series(results,name="Label")
+
+sub.Label = results
+
+sub.to_csv("subs/cnn_32conv-adam-12epoch.csv",index=False)
